@@ -59,7 +59,15 @@ defmodule Soap.Response.Parser do
         Enum.reduce(elements, &Map.merge/2)
 
       Enum.all?(elements, &is_map/1) ->
-        elements |> Enum.map(&Map.to_list/1) |> List.flatten()
+        elements
+        |> Enum.map(&Map.to_list/1)
+        |> List.flatten()
+        |> Enum.reduce(%{}, fn {k, v}, acc ->
+          Map.update(acc, k, v, fn
+            e when is_list(e) -> [v | e]
+            e -> [v, e]
+          end)
+        end)
 
       true ->
         extract_value_from_list(elements)
